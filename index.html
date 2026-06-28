@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>石井社区爱心妈妈编织队积分兑换系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background: #f8f0f6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 12px #e0c8d8;
+        }
+        h1, h2, h3, h4 {
+            color: #c84880;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        .tab-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        .tab-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            background: #e8b8d0;
+            color: #333;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .tab-btn.active {
+            background: #c84880;
+            color: white;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+        button.submit {
+            width: 100%;
+            padding: 12px;
+            background: #c84880;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button.small-btn {
+            padding: 6px 12px;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button.backup-btn {
+            padding: 8px 14px;
+            background: #4096ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .card {
+            border: 1px solid #e8c8dd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th, table td {
+            border: 1px solid #eee;
+            padding: 10px;
+            text-align: center;
+        }
+        table th {
+            background: #f4d8e8;
+        }
+        .gift-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0e0eb;
+        }
+        .tip {
+            color: #999;
+            font-size: 14px;
+            margin: 8px 0;
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            display: none;
+        }
+        .alert.success {
+            background: #e6f8e6;
+            color: #288828;
+            display: block;
+        }
+        .alert.error {
+            background: #ffe8e8;
+            color: #d03030;
+            display: block;
+        }
+        .split-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .log-box {
+            max-height: 240px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin-top:10px;
+        }
+        .log-item {
+            padding:6px 0;
+            border-bottom:1px solid #f3f3f3;
+            font-size:14px;
+        }
+        .success-page {
+            text-align:center;
+            padding:40px 20px;
+        }
+        .stat-row {
+            display:flex;
+            gap:30px;
+            justify-content:center;
+            margin:15px 0;
+            font-size:18px;
+            color:#c84880;
+        }
+        .backup-box{
+            text-align:center;
+            margin:10px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>石井社区爱心妈妈编织队积分兑换管理系统</h1>
+    <div class="tab-box">
+        <button class="tab-btn" onclick="switchTab('admin-login')">管理员入口</button>
+        <button class="tab-btn" onclick="switchTab('volunteer-page')">志愿者查询兑换</button>
+    </div>
+
+    <!-- 管理员登录页 -->
+    <div id="admin-login" class="page active">
+        <div class="card">
+            <h2>管理员登录</h2>
+            <div class="form-group">
+                <label>账号</label>
+                <input type="text" id="admin-username" placeholder="请输入管理员账号">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="admin-pwd" placeholder="请输入管理员密码">
+            </div>
+            <div id="login-alert" class="alert"></div>
+            <button class="submit" onclick="adminLogin()">登录后台</button>
+        </div>
+    </div>
+
+    <!-- 管理员后台主页面 -->
+    <div id="admin-dashboard" class="page">
+        <h2>管理员操作后台</h2>
+
+        <!-- 数据备份恢复模块 -->
+        <div class="card">
+            <h3>数据备份与恢复（跨设备迁移数据）</h3>
+            <div class="backup-box">
+                <button class="backup-btn" onclick="exportData()">导出全部数据备份（JSON文件）</button>
+                <button class="backup-btn" onclick="document.getElementById('file-input').click()">导入备份文件恢复数据</button>
+                <input type="file" id="file-input" accept=".json" style="display:none" onchange="importData(event)">
+            </div>
+            <div class="tip">换设备使用：旧设备导出文件，新设备导入即可同步全部志愿者、积分、兑换记录</div>
+            <div id="backup-alert" class="alert"></div>
+        </div>
+
+        <!-- 待核销兑换申请列表 -->
+        <div class="card">
+            <h3>待核销兑换申请列表</h3>
+            <div id="apply-empty-tip" class="tip">暂无志愿者提交兑换申请</div>
+            <table id="apply-table">
+                <thead>
+                    <tr>
+                        <th>申请人</th>
+                        <th>手机号</th>
+                        <th>兑换礼品</th>
+                        <th>所需积分</th>
+                        <th>提交时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="apply-table-body"></tbody>
+            </table>
+        </div>
+
+        <div class="split-row">
+            <div class="card">
+                <h3>1. 新增志愿者档案</h3>
+                <div class="form-group">
+                    <label>志愿者姓名</label>
+                    <input type="text" id="new-name" placeholder="填写姓名">
+                </div>
+                <div class="form-group">
+                    <label>手机号码</label>
+                    <input type="tel" id="new-phone" placeholder="填写手机号">
+                </div>
+                <div id="add-user-alert" class="alert"></div>
+                <button class="submit" onclick="addVolunteer()">创建档案</button>
+            </div>
+
+            <div class="card">
+                <h3>2. 录入积分</h3>
+                <div class="form-group">
+                    <label>选择志愿者</label>
+                    <select id="select-user"></select>
+                </div>
+                <div class="form-group">
+                    <label>积分类型</label>
+                    <select id="score-type">
+                        <option value="study">编织学习1小时 +1分</option>
+                        <option value="teach1">基础教学2人以上 +20分</option>
+                        <option value="teach2">基础教学5人以上 +25分</option>
+                        <option value="teach-doc">编写教程/视频 +20分</option>
+                        <option value="manage-admin">积分管理员月度基础30分</option>
+                        <option value="manage-material">物料管理员月度基础30分</option>
+                        <option value="manage-promo">宣传委员月度基础25分</option>
+                        <option value="manage-tech">技术顾问月度基础25分</option>
+                        <option value="excellent-manage">履职优秀奖励（10/5分）</option>
+                        <option value="work-base">基础作品 +5分/件</option>
+                        <option value="work-standard">标准作品 +10分/件</option>
+                        <option value="work-hard">复杂作品 +20分/件</option>
+                        <option value="work-original">原创设计额外 +10分</option>
+                        <option value="help-other">协助他人制作 +3分/件</option>
+                        <option value="sale-hour">义卖现场1小时 +10分</option>
+                        <option value="sale-set">义卖摊位布置 +10分</option>
+                        <option value="video-share">分享网络教程 +0.5分</option>
+                        <option value="manual">手动自定义加分</option>
+                    </select>
+                </div>
+                <div class="form-group" id="manual-input-box" style="display:none;">
+                    <label>自定义积分数值</label>
+                    <input type="number" id="manual-score" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>备注（活动说明）</label>
+                    <input type="text" id="score-desc" placeholder="如：6月20日编织学习">
+                </div>
+                <div id="score-alert" class="alert"></div>
+                <button class="submit" onclick="addScore()">确认录入积分</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>3. 全部志愿者积分总台账</h3>
+            <div class="stat-row">
+                <span>全员累计获取总积分：<span id="total-all-get">0</span></span>
+                <span>全员累计消耗总积分：<span id="total-all-consume">0</span></span>
+            </div>
+            <table id="user-table">
+                <thead>
+                    <tr>
+                        <th>姓名</th>
+                        <th>手机号</th>
+                        <th>累计获取总分</th>
+                        <th>累计已消耗</th>
+                        <th>当前可用积分</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 志愿者查询兑换页面 -->
+    <div id="volunteer-page" class="page">
+        <div class="card">
+            <h2>志愿者积分查询 & 礼品兑换</h2>
+            <div class="form-group">
+                <label>本人姓名</label>
+                <input type="text" id="vol-name" placeholder="输入登记的姓名">
+            </div>
+            <div class="form-group">
+                <label>本人手机号</label>
+                <input type="tel" id="vol-phone" placeholder="输入登记手机号">
+            </div>
+            <div id="vol-alert" class="alert"></div>
+            <button class="submit" onclick="searchVolunteer()">查询我的积分</button>
+        </div>
+
+        <div id="vol-info-box" class="card" style="display:none;">
+            <h3>个人积分信息</h3>
+            <p>姓名：<span id="show-name"></span></p>
+            <p>手机号：<span id="show-phone"></span></p>
+            <p style="font-size:20px;color:#c84880;margin:10px 0;">可用总积分：<span id="show-total"></span> 分</p>
+            <p class="tip">每月兑换积分上限800分，礼品兑完即止</p>
+
+            <h4>积分明细记录</h4>
+            <div class="log-box" id="score-log-list"></div>
+
+            <h4 style="margin-top:20px;">可兑换礼品清单</h4>
+            <div id="gift-list"></div>
+
+            <div class="form-group" style="margin-top:20px;">
+                <label>选择要兑换的礼品提交申请</label>
+                <select id="vol-gift-select">
+                    <option value="100">纸巾1提(100分)</option>
+                    <option value="100">洗手液500ML(100分)</option>
+                    <option value="150">医院免挂号券(150分)</option>
+                    <option value="150">洗洁精1kg(150分)</option>
+                    <option value="200">洗衣液1kg(200分)</option>
+                    <option value="300">品牌钩针(300分)</option>
+                    <option value="400">大米5kg(400分)</option>
+                    <option value="500">食用油1kg(500分)</option>
+                    <option value="700">料理机(700分)</option>
+                    <option value="800">露营车(800分)</option>
+                    <option value="900">空气炸锅(900分)</option>
+                </select>
+            </div>
+            <button class="submit" onclick="volApplyExchange()">提交兑换申请</button>
+
+            <h4 style="margin-top:20px;">我的兑换记录</h4>
+            <div class="log-box" id="exchange-log-list"></div>
+        </div>
+
+        <!-- 兑换提交成功页面 -->
+        <div id="apply-success-page" class="success-page card" style="display:none;">
+            <h2>兑换申请提交成功！</h2>
+            <p style="font-size:16px;margin:15px 0;">已推送至管理员后台等待核销</p>
+            <p class="tip">核销完成后可查询记录，前往石井党群服务中心领取礼品</p>
+            <button class="submit" onclick="backVolPage()">返回查询页面</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 礼品映射
+const GIFT_MAP = {
+    100: ["纸巾1提6个", "洗手液500ML"],
+    150: ["平乐/萨米骨科免挂号券", "1kg洗洁精"],
+    200: ["1kg洗衣液"],
+    300: ["品牌钩针"],
+    400: ["5kg大米"],
+    500: ["1kg食用油"],
+    700: ["料理机"],
+    800: ["露营车"],
+    900: ["空气炸锅"]
+};
+// 积分类型中文说明
+const SCORE_TYPE_TEXT = {
+    study: "编织学习1小时",
+    teach1: "基础教学≥2人",
+    teach2: "基础教学≥5人",
+    "teach-doc": "编写/录制教学教程",
+    "manage-admin": "积分管理员月度基础分",
+    "manage-material": "物料管理员月度基础分",
+    "manage-promo": "宣传委员月度基础分",
+    "manage-tech": "技术顾问月度基础分",
+    "excellent-manage": "履职优秀奖励",
+    "work-base": "基础作品",
+    "work-standard": "标准作品",
+    "work-hard": "复杂作品",
+    "work-original": "原创设计加分",
+    "help-other": "协助他人制作",
+    "sale-hour": "义卖现场值守1小时",
+    "sale-set": "义卖摊位布置",
+    "video-share": "分享网络教程",
+    manual: "手动自定义加分"
+};
+
+// 数据库初始化
+let DB = JSON.parse(localStorage.getItem("sj-love-knit-db")) || {
+    users: [], // {name, phone, totalScore, totalGet, consume, scoreLog: [], exchangeLog: []}
+    applyList: [], // 待核销申请 [{userId, name, phone, giftName, giftScore, time}]
+    adminLogin: false
+};
+
+// 页面切换
+function switchTab(tabId) {
+    document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+    document.getElementById(tabId).style.display = "block";
+    clearAllAlert();
+}
+function clearAllAlert() {
+    document.querySelectorAll(".alert").forEach(el=>el.style.display="none");
+}
+function backVolPage() {
+    document.getElementById("apply-success-page").style.display = "none";
+    document.getElementById("vol-info-box").style.display = "block";
+}
+
+// ========== 新增：导出导入数据函数 ==========
+function exportData() {
+    const dataStr = JSON.stringify(DB, null, 2);
+    const blob = new Blob([dataStr], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `石井编织队数据备份_${new Date().toLocaleDateString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    const alertBox = document.getElementById("backup-alert");
+    alertBox.className = "alert success";
+    alertBox.textContent = "数据备份文件已下载，请妥善保存！";
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+        try{
+            const importDB = JSON.parse(e.target.result);
+            // 简单校验数据结构
+            if(!importDB.users || !importDB.applyList){
+                throw new Error("备份文件格式错误");
+            }
+            DB = importDB;
+            saveDB();
+            renderUserSelect();
+            renderUserTable();
+            renderApplyList();
+            const alertBox = document.getElementById("backup-alert");
+            alertBox.className = "alert success";
+            alertBox.textContent = "数据导入恢复成功！所有数据已同步";
+        }catch(err){
+            const alertBox = document.getElementById("backup-alert");
+            alertBox.className = "alert error";
+            alertBox.textContent = "导入失败：" + err.message;
+        }
+    }
+    reader.readAsText(file);
+}
+
+// 管理员登录
+function adminLogin() {
+    const un = document.getElementById("admin-username").value.trim();
+    const pwd = document.getElementById("admin-pwd").value.trim();
+    const alertBox = document.getElementById("login-alert");
+    if(un === "sjsq" && pwd === "sjsq") {
+        DB.adminLogin = true;
+        saveDB();
+        alertBox.className = "alert success";
+        alertBox.textContent = "登录成功，进入管理后台";
+        setTimeout(()=>{
+            switchTab("admin-dashboard");
+            renderUserSelect();
+            renderUserTable();
+            renderApplyList();
+        },800);
+    } else {
+        alertBox.className = "alert error";
+        alertBox.textContent = "账号或密码错误，账号密码均为 sjsq";
+    }
+}
+
+// 新增志愿者
+function addVolunteer() {
+    const name = document.getElementById("new-name").value.trim();
+    const phone = document.getElementById("new-phone").value.trim();
+    const alertBox = document.getElementById("add-user-alert");
+    if(!name || !phone) {
+        alertBox.className = "alert error";
+        alertBox.textContent = "姓名和手机号不能为空";
+        return;
+    }
+    const exist = DB.users.find(u=>u.phone === phone);
+    if(exist) {
+        alertBox.className = "alert error";
+        alertBox.textContent = "该手机号已存在志愿者档案";
+        return;
+    }
+    DB.users.push({
+        name, phone,
+        totalScore: 0,    // 当前可用积分
+        totalGet: 0,      // 累计获取总分
+        consume: 0,       // 累计消耗积分
+        scoreLog: [],
+        exchangeLog: []
+    });
+    saveDB();
+    alertBox.className = "alert success";
+    alertBox.textContent = `志愿者【${name}】档案创建成功`;
+    document.getElementById("new-name").value = "";
+    document.getElementById("new-phone").value = "";
+    renderUserSelect();
+    renderUserTable();
+}
+
+// 积分类型下拉切换自定义输入框
+document.getElementById("score-type").onchange = function(){
+    const box = document.getElementById("manual-input-box");
+    box.style.display = this.value === "manual" ? "block" : "none";
+}
+
+// 录入积分
+function addScore() {
+    const userSel = document.getElementById("select-user");
+    const userId = userSel.value;
+    if(!userId) return alert("请先选择志愿者");
+    const user = DB.users[userId];
+    const type = document.getElementById("score-type").value;
+    const desc = document.getElementById("score-desc").value.trim() || "日常积分录入";
+    let score = 0;
+    switch(type) {
+        case "study": score = 1; break;
+        case "teach1": score =20; break;
+        case "teach2": score=25; break;
+        case "teach-doc": score=20; break;
+        case "manage-admin": score=30; break;
+        case "manage-material": score=30; break;
+        case "manage-promo": score=25; break;
+        case "manage-tech": score=25; break;
+        case "excellent-manage": score=10; break;
+        case "work-base": score=5; break;
+        case "work-standard": score=10; break;
+        case "work-hard": score=20; break;
+        case "work-original": score=10; break;
+        case "help-other": score=3; break;
+        case "sale-hour": score=10; break;
+        case "sale-set": score=10; break;
+        case "video-share": score=0.5; break;
+        case "manual": score = Number(document.getElementById("manual-score").value); break;
+    }
+    if(score <=0) {
+        document.getElementById("score-alert").className = "alert error";
+        document.getElementById("score-alert").textContent = "积分必须大于0";
+        return;
+    }
+    const now = new Date().toLocaleString();
+    user.totalScore += score;
+    user.totalGet += score;
+    user.scoreLog.push({
+        time: now,
+        type: type,
+        typeText: SCORE_TYPE_TEXT[type],
+        score: score,
+        desc: desc
+    });
+    saveDB();
+    const alertBox = document.getElementById("score-alert");
+    alertBox.className = "alert success";
+    alertBox.textContent = `成功添加 ${score} 分，当前可用积分：${user.totalScore}`;
+    document.getElementById("score-desc").value = "";
+    renderUserTable();
+}
+
+// 渲染待核销申请列表
+function renderApplyList() {
+    const tbody = document.getElementById("apply-table-body");
+    const emptyTip = document.getElementById("apply-empty-tip");
+    tbody.innerHTML = "";
+    if(DB.applyList.length === 0) {
+        emptyTip.style.display = "block";
+        return;
+    }
+    emptyTip.style.display = "none";
+    DB.applyList.forEach((item, idx)=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.phone}</td>
+            <td>${item.giftName}</td>
+            <td>${item.giftScore}</td>
+            <td>${item.time}</td>
+            <td><button class="small-btn" onclick="confirmExchange(${idx})">核销兑换</button></td>
+        `;
+        tbody.appendChild(tr);
+    })
+}
+
+// 管理员核销兑换
+function confirmExchange(applyIdx) {
+    const apply = DB.applyList[applyIdx];
+    const user = DB.users.find(u=>u.phone === apply.phone);
+    const giftScore = apply.giftScore;
+    // 月度800上限校验
+    const nowMonth = new Date().getMonth();
+    const monthConsume = user.exchangeLog.filter(item=>{
+        const d = new Date(item.time);
+        return d.getMonth() === nowMonth;
+    }).reduce((sum,item)=>sum+item.score,0);
+    if(monthConsume + giftScore > 800) {
+        alert("本月兑换积分上限800分，无法核销");
+        return;
+    }
+    if(user.totalScore < giftScore) {
+        alert("用户可用积分不足，无法核销");
+        return;
+    }
+    // 扣减积分，写入兑换记录
+    user.totalScore -= giftScore;
+    user.consume += giftScore;
+    user.exchangeLog.push({
+        time: new Date().toLocaleString(),
+        score: giftScore,
+        gift: apply.giftName,
+        status: "已核销，请前往石井党群兑换礼品"
+    });
+    // 删除待核销申请
+    DB.applyList.splice(applyIdx, 1);
+    saveDB();
+    alert("核销完成！志愿者查询可查看核销提示");
+    renderApplyList();
+    renderUserTable();
+}
+
+// 渲染志愿者下拉选择框
+function renderUserSelect() {
+    const sel1 = document.getElementById("select-user");
+    sel1.innerHTML = "<option value=''>请选择志愿者</option>";
+    DB.users.forEach((u,idx)=>{
+        sel1.innerHTML += `<option value="${idx}">${u.name} | ${u.phone} | 可用积分：${u.totalScore}</option>`;
+    })
+}
+
+// 渲染全员积分台账 + 统计总数
+function renderUserTable() {
+    const tbody = document.getElementById("user-table-body");
+    tbody.innerHTML = "";
+    let allGet = 0, allConsume = 0;
+    DB.users.forEach(u=>{
+        allGet += u.totalGet;
+        allConsume += u.consume;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${u.name}</td>
+            <td>${u.phone}</td>
+            <td>${u.totalGet}</td>
+            <td>${u.consume}</td>
+            <td>${u.totalScore}</td>
+        `;
+        tbody.appendChild(tr);
+    })
+    document.getElementById("total-all-get").innerText = allGet;
+    document.getElementById("total-all-consume").innerText = allConsume;
+}
+
+// 志愿者查询积分
+function searchVolunteer() {
+    const name = document.getElementById("vol-name").value.trim();
+    const phone = document.getElementById("vol-phone").value.trim();
+    const alertBox = document.getElementById("vol-alert");
+    const infoBox = document.getElementById("vol-info-box");
+    const successPage = document.getElementById("apply-success-page");
+    successPage.style.display = "none";
+    const user = DB.users.find(u=>u.name === name && u.phone === phone);
+    if(!user) {
+        alertBox.className = "alert error";
+        alertBox.textContent = "未找到该志愿者档案，请核对姓名手机号";
+        infoBox.style.display = "none";
+        return;
+    }
+    alertBox.style.display = "none";
+    infoBox.style.display = "block";
+    document.getElementById("show-name").textContent = user.name;
+    document.getElementById("show-phone").textContent = user.phone;
+    document.getElementById("show-total").textContent = user.totalScore;
+
+    // 渲染积分明细
+    let scoreLogHtml = "";
+    if(user.scoreLog.length === 0) scoreLogHtml = "<div class='log-item'>暂无积分记录</div>";
+    user.scoreLog.reverse().forEach(log=>{
+        scoreLogHtml += `<div class="log-item">${log.time} | ${log.typeText} | +${log.score}分 | 备注：${log.desc}</div>`;
+    })
+    document.getElementById("score-log-list").innerHTML = scoreLogHtml;
+
+    // 渲染礼品清单
+    let giftHtml = "";
+    Object.keys(GIFT_MAP).sort((a,b)=>a-b).forEach(score=>{
+        GIFT_MAP[score].forEach(gift=>{
+            giftHtml += `<div class="gift-item"><span>${gift}</span><span>所需积分：${score}</span></div>`
+        })
+    })
+    document.getElementById("gift-list").innerHTML = giftHtml;
+
+    // 渲染兑换记录
+    let exchangeLogHtml = "";
+    if(user.exchangeLog.length === 0) exchangeLogHtml = "<div class='log-item'>暂无兑换记录</div>";
+    user.exchangeLog.reverse().forEach(log=>{
+        exchangeLogHtml += `<div class="log-item">${log.time} | ${log.gift} | 消耗${log.score}分 | ${log.status}</div>`;
+    })
+    document.getElementById("exchange-log-list").innerHTML = exchangeLogHtml;
+}
+
+// 志愿者提交兑换申请
+function volApplyExchange() {
+    const name = document.getElementById("vol-name").value.trim();
+    const phone = document.getElementById("vol-phone").value.trim();
+    const user = DB.users.find(u=>u.name === name && u.phone === phone);
+    const selectDom = document.getElementById("vol-gift-select");
+    const needScore = Number(selectDom.value);
+    const giftFullName = selectDom.options[selectDom.selectedIndex].text;
+    const alertBox = document.getElementById("vol-alert");
+
+    // 积分不足判断
+    if(user.totalScore < needScore) {
+        alertBox.className = "alert error";
+        alertBox.textContent = `积分不足！当前可用${user.totalScore}分，该礼品需要${needScore}分`;
+        return;
+    }
+    alertBox.style.display = "none";
+    // 存入待核销列表
+    DB.applyList.push({
+        userId: DB.users.indexOf(user),
+        name: user.name,
+        phone: user.phone,
+        giftName: giftFullName,
+        giftScore: needScore,
+        time: new Date().toLocaleString()
+    });
+    saveDB();
+    // 跳转提交成功页面
+    document.getElementById("vol-info-box").style.display = "none";
+    document.getElementById("apply-success-page").style.display = "block";
+}
+
+// 本地存储保存
+function saveDB() {
+    localStorage.setItem("sj-love-knit-db", JSON.stringify(DB));
+}
+</script>
+</body>
+</html>
